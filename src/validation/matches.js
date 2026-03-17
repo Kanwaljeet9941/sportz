@@ -20,8 +20,8 @@ export const matchIdParamSchema = z.object({
     .positive({ message: "Match ID must be a positive integer" }),
 });
 
-const isoDateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
-  message: "Must be a valid ISO date string",
+const isoDateString = z.iso.datetime({
+  error: "Must be a valid ISO date string",
 });
 
 // Schema for creating a match

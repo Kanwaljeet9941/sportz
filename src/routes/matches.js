@@ -34,21 +34,22 @@ matchRouter.get("/", async (req, res) => {
   } catch (e) {
     res
       .status(500)
-      .json({ error: "Failed to list matches", details: JSON.stringify(e) });
+      .json({ error: "Failed to list matches"});
   }
 });
 
 matchRouter.post("/", async (req, res) => {
   const parsed = createMatchSchema.safeParse(req.body);
+  
+  if (!parsed.success) {
+    return res.status(400).json({
+     error: "Invalid request body",
+     details: parsed.error.issues,
+    });
+  }
   const {
     data: { startTime, endTime, homeScore, awayScore },
   } = parsed;
-  if (!parsed.success) {
-    return res.status(400).json({
-      error: parsed.error.errors,
-      details: JSON.stringify(parsed.error),
-    });
-  }
 
   try {
     const [event] = await db
