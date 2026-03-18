@@ -4,7 +4,7 @@ import {
   listMatchesQuerySchema,
 } from "../validation/matches.js";
 import { db } from "../db/db.js";
-import { getMatchStatus } from "./utils/match-status.js";
+import { getMatchStatus } from "../utils/match-status.js";
 import { matches } from "../db/schema.js";
 import { desc } from "drizzle-orm";
 
@@ -30,21 +30,19 @@ matchRouter.get("/", async (req, res) => {
       .from(matches)
       .orderBy(desc(matches.createdAt))
       .limit(limit);
-    res.status(200).json({data });
+    res.status(200).json({ data });
   } catch (e) {
-    res
-      .status(500)
-      .json({ error: "Failed to list matches"});
+    res.status(500).json({ error: "Failed to list matches" });
   }
 });
 
 matchRouter.post("/", async (req, res) => {
   const parsed = createMatchSchema.safeParse(req.body);
-  
+
   if (!parsed.success) {
     return res.status(400).json({
-     error: "Invalid request body",
-     details: parsed.error.issues,
+      error: "Invalid request body",
+      details: parsed.error.issues,
     });
   }
   const {
@@ -64,7 +62,11 @@ matchRouter.post("/", async (req, res) => {
       })
       .returning();
 
-    res.status(201).json({ message: "Match created successfully", event });
+    if (res.app.locals.broadcastMatchCreated) {
+      res.app.locals.broadcastMatchCreated(event);
+    }
+
+    res.status(201).json({ data: event });
   } catch (e) {
     res
       .status(500)
